@@ -44,7 +44,7 @@ func New(apiKey string, httpClient *http.Client, logger *slog.Logger) (WebSearch
 	}, nil
 }
 
-// Search performs a web search using the Tavily API with the specified query, maximum results, and time range in days.
+// Search performs a web search using the Tavily API.
 func (tavilyClient *tavilyClient) Search(ctx context.Context, searchRequest *SearchRequest) (SearchResponse, error) {
 	requestBody, err := json.Marshal(searchRequest)
 	if err != nil {

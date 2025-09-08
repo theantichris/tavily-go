@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 	t.Run("creates client with valid parameters", func(t *testing.T) {
 		t.Parallel()
 
-		client, err := New("valid-api-key", http.DefaultClient, slog.Default())
+		client, err := New("valid-api-key", http.DefaultClient, nil)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -41,7 +41,7 @@ func TestNew(t *testing.T) {
 	t.Run("returns error with empty apiKey", func(t *testing.T) {
 		t.Parallel()
 
-		_, err := New("", http.DefaultClient, slog.Default())
+		_, err := New("", http.DefaultClient, nil)
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -54,7 +54,7 @@ func TestNew(t *testing.T) {
 	t.Run("uses default http.Client when nil is provided", func(t *testing.T) {
 		t.Parallel()
 
-		client, err := New("valid-api-key", nil, slog.Default())
+		client, err := New("valid-api-key", nil, nil)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -91,7 +91,7 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), nil)
 		if c, ok := client.(*tavilyClient); ok {
 			c.searchUrl = server.URL
 		}
@@ -130,7 +130,7 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), nil)
 		if c, ok := client.(*tavilyClient); ok {
 			c.searchUrl = server.URL
 		}
@@ -158,7 +158,7 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), nil)
 		if c, ok := client.(*tavilyClient); ok {
 			c.searchUrl = server.URL
 		}
@@ -174,4 +174,72 @@ func TestSearch(t *testing.T) {
 			t.Errorf("got error %q, want it to contain %q", err.Error(), "failed to decode response JSON")
 		}
 	})
+
+	t.Run("handles HTTP request failure", func(t *testing.T) {
+		t.Parallel()
+
+		searchRequest := SearchRequest{Query: "test query"}
+
+		client, _ := New("fake-api-key", &http.Client{}, nil)
+		if c, ok := client.(*tavilyClient); ok {
+			c.searchUrl = "http://invalid-url"
+		}
+
+		ctx := context.Background()
+
+		_, err := client.Search(ctx, &searchRequest)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if !strings.Contains(err.Error(), "HTTP request to Tavily API failed") {
+			t.Errorf("got error %q, want it to contain %q", err.Error(), "HTTP request to Tavily API failed")
+		}
+	})
+
+	t.Run("handles HTTP request failure", func(t *testing.T) {
+		t.Parallel()
+
+		client, _ := New("valid-api-key", http.DefaultClient, nil)
+		// Set an invalid URL to force http.NewRequestWithContext to fail
+		if c, ok := client.(*tavilyClient); ok {
+			c.searchUrl = ":"
+		}
+
+		searchRequest := &SearchRequest{Query: "test query"}
+		_, err := client.Search(context.Background(), searchRequest)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if !strings.Contains(err.Error(), "failed to create Tavily HTTP request") {
+			t.Errorf("got error %q, want it to contain %q", err.Error(), "failed to create Tavily HTTP request")
+		}
+	})
+}
+
+func TestLogError(t *testing.T) {
+	t.Parallel()
+
+	client, err := New("valid-api-key", http.DefaultClient, slog.Default())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if c, ok := client.(*tavilyClient); ok {
+		c.logError("test error message", "key", "value")
+	}
+}
+
+func TestLogInfo(t *testing.T) {
+	t.Parallel()
+
+	client, err := New("valid-api-key", http.DefaultClient, slog.Default())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if c, ok := client.(*tavilyClient); ok {
+		c.logInfo("test info message", "key", "value")
+	}
 }
