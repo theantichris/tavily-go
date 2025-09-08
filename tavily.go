@@ -25,6 +25,8 @@ type tavilyClient struct {
 
 // New creates a new instance of tavilyClient.
 func New(apiKey string, searchURL string, httpClient *http.Client, logger *slog.Logger) WebSearchClient {
+	// TODO: Validate apiKey and searchURL are not empty, httpClient and logger are not nil.
+	// TODO: Pass nil for no logging
 	return &tavilyClient{
 		apiKey:     apiKey,
 		searchUrl:  searchURL,
