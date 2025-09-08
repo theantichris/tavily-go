@@ -8,7 +8,7 @@ type SearchRequest struct {
 	IncludeRawContent        bool   `json:"include_raw_content"`        // Include the cleaned and parsed HTML content of each search result.
 	IncludeImages            bool   `json:"include_images"`             // Perform an image search and include the results in the response.
 	IncludeImageDescriptions bool   `json:"include_image_descriptions"` // Includes descriptive text for each image.
-	MaxResults               int    `json:"max_results"`                // The maximum number of search results to return.
+	MaxResults               int    `json:"max_results"`                // The maximum number of search results to return. (Max: 20)
 }
 
 // SearchResponse represents the response from the Tavily API.
