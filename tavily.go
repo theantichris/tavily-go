@@ -26,7 +26,6 @@ type tavilyClient struct {
 // New creates a new instance of tavilyClient.
 func New(apiKey string, searchURL string, httpClient *http.Client, logger *slog.Logger) WebSearchClient {
 	// TODO: Validate apiKey and searchURL are not empty, httpClient and logger are not nil.
-	// TODO: Pass nil for no logging
 	return &tavilyClient{
 		apiKey:     apiKey,
 		searchUrl:  searchURL,
@@ -39,14 +38,14 @@ func New(apiKey string, searchURL string, httpClient *http.Client, logger *slog.
 func (tavilyClient *tavilyClient) Search(ctx context.Context, searchRequest *SearchRequest) (SearchResponse, error) {
 	requestBody, err := json.Marshal(searchRequest)
 	if err != nil {
-		tavilyClient.logger.Error("failed to marshal Tavily request to JSON", "err", err)
+		tavilyClient.logError("failed to marshal Tavily request to JSON", "err", err)
 
 		return SearchResponse{}, fmt.Errorf("failed to marshal Tavily request to JSON: %w", err)
 	}
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, tavilyClient.searchUrl, bytes.NewBuffer(requestBody))
 	if err != nil {
-		tavilyClient.logger.Error("failed to create Tavily HTTP request", "err", err)
+		tavilyClient.logError("failed to create Tavily HTTP request", "err", err)
 
 		return SearchResponse{}, fmt.Errorf("failed to create Tavily HTTP request: %w", err)
 	}
@@ -54,11 +53,11 @@ func (tavilyClient *tavilyClient) Search(ctx context.Context, searchRequest *Sea
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer "+tavilyClient.apiKey)
 
-	tavilyClient.logger.Info("sending request to Tavily API", "url", tavilyClient.searchUrl, "query", searchRequest.Query)
+	tavilyClient.logInfo("sending request to Tavily API", "url", tavilyClient.searchUrl, "query", searchRequest.Query)
 
 	response, err := tavilyClient.httpClient.Do(request)
 	if err != nil {
-		tavilyClient.logger.Error("HTTP request to Tavily API failed", "err", err)
+		tavilyClient.logError("HTTP request to Tavily API failed", "err", err)
 
 		return SearchResponse{}, fmt.Errorf("HTTP request to Tavily API failed: %w", err)
 	}
@@ -67,17 +66,28 @@ func (tavilyClient *tavilyClient) Search(ctx context.Context, searchRequest *Sea
 	if response.StatusCode/100 != 2 {
 		bodyBytes, _ := io.ReadAll(response.Body)
 
-		tavilyClient.logger.Error("non-2xx response from Tavily API", "status", response.StatusCode, "body", string(bodyBytes))
+		tavilyClient.logError("non-2xx response from Tavily API", "status", response.StatusCode, "body", string(bodyBytes))
 
 		return SearchResponse{}, fmt.Errorf("non-2xx response from Tavily API: %d - %s", response.StatusCode, string(bodyBytes))
 	}
 
 	var searchResponse SearchResponse
 	if err := json.NewDecoder(response.Body).Decode(&searchResponse); err != nil {
-		tavilyClient.logger.Error("failed to decode response JSON", "err", err)
+		tavilyClient.logError("failed to decode response JSON", "err", err)
 
 		return SearchResponse{}, fmt.Errorf("failed to decode response JSON: %w", err)
 	}
 
 	return searchResponse, nil
+}
+
+func (tavilyClient *tavilyClient) logError(message string, args ...any) {
+	if tavilyClient.logger != nil {
+		tavilyClient.logger.Error(message, args...)
+	}
+}
+func (tavilyClient *tavilyClient) logInfo(message string, args ...any) {
+	if tavilyClient.logger != nil {
+		tavilyClient.logger.Info(message, args...)
+	}
 }
