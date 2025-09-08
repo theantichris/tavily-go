@@ -2,13 +2,16 @@ package tavily
 
 import "context"
 
-// MockSearchProvider is a mock implementation of the WebSearchProvider interface for testing.
-type MockSearchProvider struct {
-	Response SearchResponse
-	Err      error
+// MockWebSearchClient is a mock implementation of the WebSearchClient interface for testing.
+type MockWebSearchClient struct {
+	SearchFunc func(ctx context.Context, searchRequest *SearchRequest) (SearchResponse, error)
 }
 
-// Search returns the predefined response or error.
-func (provider *MockSearchProvider) Search(ctx context.Context, query string) (SearchResponse, error) {
-	return provider.Response, provider.Err
+// Search calls the mock Search function if defined, otherwise returns zero values.
+func (client *MockWebSearchClient) Search(ctx context.Context, searchRequest *SearchRequest) (SearchResponse, error) {
+	if client.SearchFunc != nil {
+		return client.SearchFunc(ctx, searchRequest)
+	}
+
+	return SearchResponse{}, nil
 }

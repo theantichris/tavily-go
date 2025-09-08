@@ -14,6 +14,8 @@ func TestSearch(t *testing.T) {
 	t.Run("handles successful search", func(t *testing.T) {
 		t.Parallel()
 
+		searchRequest := SearchRequest{Query: "test query"}
+
 		want := SearchResponse{
 			Query:  "test query",
 			Answer: "test answer",
@@ -28,10 +30,10 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		provider := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
 		ctx := context.Background()
 
-		got, err := provider.Search(ctx, "test query")
+		got, err := client.Search(ctx, &searchRequest)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -56,15 +58,17 @@ func TestSearch(t *testing.T) {
 	t.Run("handles non-200 status code", func(t *testing.T) {
 		t.Parallel()
 
+		searchRequest := SearchRequest{Query: "test query"}
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "fail", http.StatusInternalServerError)
 		}))
 		defer server.Close()
 
-		provider := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
 		ctx := context.Background()
 
-		_, err := provider.Search(ctx, "test query")
+		_, err := client.Search(ctx, &searchRequest)
 		if err == nil {
 			t.Fatal("expected error, got nil")
 		}
@@ -77,16 +81,18 @@ func TestSearch(t *testing.T) {
 	t.Run("handles invalid JSON response", func(t *testing.T) {
 		t.Parallel()
 
+		searchRequest := SearchRequest{Query: "test query"}
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte("{invalid json"))
 		}))
 		defer server.Close()
 
-		provider := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
 		ctx := context.Background()
 
-		_, err := provider.Search(ctx, "test query")
+		_, err := client.Search(ctx, &searchRequest)
 		if err == nil {
 			t.Fatalf("expected error, got nil")
 		}

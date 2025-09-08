@@ -1,7 +1,7 @@
 package tavily
 
-// searchRequest represents the request for the Tavily API.
-type searchRequest struct {
+// SearchRequest represents the request for the Tavily API.
+type SearchRequest struct {
 	Query                    string `json:"query"`                      // The search query to execute with Tavily.
 	AutoParameters           bool   `json:"auto_parameters"`            // When auto_parameters is enabled, Tavily automatically configures search parameters based on your query's content and intent.
 	IncludeAnswer            bool   `json:"include_answer"`             // Include an LLM-generated answer to the provided query.
