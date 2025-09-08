@@ -36,7 +36,11 @@ func main() {
 	}
 
 	httpClient := &http.Client{Timeout: *timeout}
-	provider := tavily.New(apiKey, searchURL, httpClient, logger)
+	provider, err := tavily.New(apiKey, httpClient, logger)
+	if err != nil {
+		logger.Error("error creating Tavily client", "err", err)
+		os.Exit(1)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), *timeout)
 	defer cancel()

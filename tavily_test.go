@@ -30,7 +30,11 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		if c, ok := client.(*tavilyClient); ok {
+			c.searchUrl = server.URL
+		}
+
 		ctx := context.Background()
 
 		got, err := client.Search(ctx, &searchRequest)
@@ -65,7 +69,11 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		if c, ok := client.(*tavilyClient); ok {
+			c.searchUrl = server.URL
+		}
+
 		ctx := context.Background()
 
 		_, err := client.Search(ctx, &searchRequest)
@@ -89,7 +97,11 @@ func TestSearch(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := New("fake-api-key", server.URL, server.Client(), slog.Default())
+		client, _ := New("fake-api-key", server.Client(), slog.Default())
+		if c, ok := client.(*tavilyClient); ok {
+			c.searchUrl = server.URL
+		}
+
 		ctx := context.Background()
 
 		_, err := client.Search(ctx, &searchRequest)

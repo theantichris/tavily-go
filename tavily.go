@@ -8,7 +8,10 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 )
+
+const searchURL = "https://api.tavily.com/search"
 
 // WebSearchClient defines the interface for a web search client.
 type WebSearchClient interface {
@@ -24,14 +27,21 @@ type tavilyClient struct {
 }
 
 // New creates a new instance of tavilyClient.
-func New(apiKey string, searchURL string, httpClient *http.Client, logger *slog.Logger) WebSearchClient {
-	// TODO: Validate apiKey and searchURL are not empty, httpClient and logger are not nil.
+func New(apiKey string, httpClient *http.Client, logger *slog.Logger) (WebSearchClient, error) {
+	if strings.TrimSpace(apiKey) == "" {
+		return nil, fmt.Errorf("apiKey cannot be empty")
+	}
+
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+
 	return &tavilyClient{
 		apiKey:     apiKey,
 		searchUrl:  searchURL,
 		httpClient: httpClient,
 		logger:     logger,
-	}
+	}, nil
 }
 
 // Search performs a web search using the Tavily API with the specified query, maximum results, and time range in days.
@@ -81,11 +91,14 @@ func (tavilyClient *tavilyClient) Search(ctx context.Context, searchRequest *Sea
 	return searchResponse, nil
 }
 
+// logError logs an error message if a logger is configured.
 func (tavilyClient *tavilyClient) logError(message string, args ...any) {
 	if tavilyClient.logger != nil {
 		tavilyClient.logger.Error(message, args...)
 	}
 }
+
+// logInfo logs an info message if a logger is configured.
 func (tavilyClient *tavilyClient) logInfo(message string, args ...any) {
 	if tavilyClient.logger != nil {
 		tavilyClient.logger.Info(message, args...)
