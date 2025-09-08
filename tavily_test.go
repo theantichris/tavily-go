@@ -197,7 +197,7 @@ func TestSearch(t *testing.T) {
 		}
 	})
 
-	t.Run("handles HTTP request failure", func(t *testing.T) {
+	t.Run("handles HTTP request creation failure", func(t *testing.T) {
 		t.Parallel()
 
 		client, _ := New("valid-api-key", http.DefaultClient, nil)
