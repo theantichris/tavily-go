@@ -29,9 +29,8 @@ func main() {
 	}
 
 	apiKey := os.Getenv("TAVILY_API_KEY")
-	searchURL := os.Getenv("TAVILY_SEARCH_URL")
-	if apiKey == "" || searchURL == "" {
-		logger.Error("TAVILY_API_KEY and TAVILY_SEARCH_URL environment variables must be set")
+	if apiKey == "" {
+		logger.Error("TAVILY_API_KEY environment variables must be set")
 		os.Exit(1)
 	}
 
