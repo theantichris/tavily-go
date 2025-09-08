@@ -1,6 +1,6 @@
 # tavily-go
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/theantichris/tavily-go.svg)](https://pkg.go.dev/github.com/theantichris/tavily-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/theantichris/tavily-go.svg)](https://pkg.go.dev/github.com/theantichris/tavily-go) [![CI](https://github.com/theantichris/tavily-go/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/theantichris/tavily-go/actions/workflows/ci.yml)
 
 A Go client library for the Tavily Web Search API.
 
