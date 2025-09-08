@@ -10,7 +10,68 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	t.Parallel()
+
+	t.Run("creates client with valid parameters", func(t *testing.T) {
+		t.Parallel()
+
+		client, err := New("valid-api-key", http.DefaultClient, slog.Default())
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if client == nil {
+			t.Fatal("expected client to be non-nil")
+		}
+
+		if _, ok := client.(*tavilyClient); !ok {
+			t.Fatalf("got type %T, want *tavilyClient", client)
+		}
+
+		if client.(*tavilyClient).apiKey != "valid-api-key" {
+			t.Errorf("got apiKey %q, want %q", client.(*tavilyClient).apiKey, "valid-api-key")
+		}
+
+		if client.(*tavilyClient).searchUrl != searchURL {
+			t.Errorf("got searchUrl %q, want %q", client.(*tavilyClient).searchUrl, searchURL)
+		}
+	})
+
+	t.Run("returns error with empty apiKey", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := New("", http.DefaultClient, slog.Default())
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if !strings.Contains(err.Error(), "apiKey cannot be empty") {
+			t.Errorf("got error %q, want it to contain %q", err.Error(), "apiKey cannot be empty")
+		}
+	})
+
+	t.Run("uses default http.Client when nil is provided", func(t *testing.T) {
+		t.Parallel()
+
+		client, err := New("valid-api-key", nil, slog.Default())
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if client == nil {
+			t.Fatal("expected client to be non-nil")
+		}
+
+		if client.(*tavilyClient).httpClient != http.DefaultClient {
+			t.Errorf("got httpClient %v, want %v", client.(*tavilyClient).httpClient, http.DefaultClient)
+		}
+	})
+}
+
 func TestSearch(t *testing.T) {
+	t.Parallel()
+
 	t.Run("handles successful search", func(t *testing.T) {
 		t.Parallel()
 
